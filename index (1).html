@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>English Treasure Hunt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE jogo leve para adolescentes do 9º ano: ensolarado, claro, sem pressa
+   IDEA mapa de ilhas tropicais desenhado num dia de sol: rota pontilhada, barco, baú no fim
+   PICTURE faixa de mar azul com oito ilhas, o barco na ilha atual e o baú dourado
+   COLOUR azul-mar dominante, amarelo-sol de apoio, verde-palmeira e coral para erro
+   TYPE Lilita One nos títulos, Nunito no texto
+   LAYOUT mapa em faixa larga; abaixo, texto em inglês à esquerda e pergunta à direita; no celular, empilhado */
+:root{color-scheme:light dark;--bg:light-dark(#f2f9fd,#071a26);--ink:light-dark(#0d2a3a,#e6f2f8);--muted:light-dark(#46657a,#a3c0d0);--card:light-dark(#ffffff,#0d2737);--line:light-dark(#cfe5f1,#22465c);--sea:light-dark(#1883c2,#0f5a88);--sea2:light-dark(#0f6aa3,#0a4466);--sun:#ffcf3f;--sund:#d9a21a;--coral:#e8573f;--ok:light-dark(#178a52,#53c98f);--okbg:light-dark(#e4f6ec,#0f3324);--badbg:light-dark(#fde8e3,#3b1711)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.55 Nunito,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Lilita One",Nunito,sans-serif;font-weight:400;line-height:1.05;margin:0}
+.top{background:var(--sea);color:#fff;padding:18px max(4vw,16px) 0}
+.top h1{font-size:clamp(34px,5vw,50px)}
+.top p{margin:4px 0 0;color:#dcf0fb;max-width:62ch}
+.status{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-top:12px;font-size:15px}
+.status b{color:var(--sun);font-weight:800}
+.torches{display:inline-flex;gap:3px;vertical-align:middle}
+.torches svg{width:16px;height:22px}
+.mapwrap{background:linear-gradient(var(--sea),var(--sea2));padding:6px max(4vw,16px) 14px}
+#map{display:block;width:100%;height:auto;max-height:260px}
+.slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;color:#dcf0fb;font-size:14px}
+.slot{width:34px;height:40px;border-radius:8px;border:2px dashed #8cc8ea;display:grid;place-items:center;font:26px "Lilita One",sans-serif;color:#0d2a3a}
+.slot.on{background:var(--sun);border:2px solid var(--sund)}
+main{max-width:1240px;margin:0 auto;padding:24px max(4vw,16px) 48px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.doc{border-top:8px solid var(--sun)}
+.lab{font-size:14px;color:var(--muted);font-weight:800;margin:0 0 8px}
+.txt{font-size:18px;line-height:1.65;white-space:pre-line}
+.gl{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:14px}
+.gl span{background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:3px 10px}
+.gl b{font-weight:800}
+.tag{display:inline-block;background:var(--sea);color:#fff;border-radius:99px;padding:2px 12px;font-size:14px;font-weight:800}
+.q{font-weight:800;font-size:19px;margin:10px 0 14px;line-height:1.4}
+.opts{display:grid;gap:10px}
+.opt{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:center;text-align:left;width:100%;min-height:48px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:17px;line-height:1.4;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--sea)}
+.opt:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.opt .l{width:30px;height:30px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-weight:800}
+.opt.bad{background:var(--badbg);border-color:var(--coral);text-decoration:line-through;text-decoration-color:var(--coral);cursor:default}
+.opt.bad .l{background:var(--coral);color:#fff}
+.opt.good{background:var(--okbg);border-color:var(--ok)}
+.opt.good .l{background:var(--ok);color:#fff}
+.opt:disabled{cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.btn{min-height:46px;padding:10px 18px;border-radius:12px;border:0;background:var(--sea);color:#fff;font:800 16px Nunito,sans-serif;cursor:pointer}
+.btn.gold{background:var(--sun);color:#0d2a3a}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.hint{margin-top:12px;padding:10px 14px;border-radius:12px;background:light-dark(#fff7d6,#2d2610);border:1px solid var(--sund)}
+.exp{margin-top:16px;padding:16px;border-radius:12px;background:var(--okbg);border:1px solid var(--ok)}
+.exp h3{font-size:26px;color:var(--ok);margin-bottom:6px}
+.msg{margin-top:10px;font-weight:800}
+.msg.bad{color:var(--coral)}
+.start{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px}
+@media(max-width:900px){.start{grid-template-columns:minmax(0,1fr)}}
+.start h2,.final h2,.end h2{font-size:clamp(30px,4vw,40px);margin-bottom:10px}
+.start ol{padding-left:20px;margin:8px 0 0}
+.start li{margin-bottom:6px}
+label{font-weight:800;display:block;margin-bottom:6px}
+input[type=text]{width:100%;font:17px Nunito,sans-serif;padding:11px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.riddle{font-size:21px;font-weight:800;margin:6px 0 4px}
+.pt{color:var(--muted);margin:0 0 14px}
+.big{font:clamp(44px,8vw,68px)/1 "Lilita One",sans-serif;color:var(--sund);letter-spacing:.06em}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(9em,1fr));gap:12px;margin:16px 0}
+.fig1{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.fig1 b{display:block;font-size:22px}
+.fig1 span{font-size:14px;color:var(--muted)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+textarea{width:100%;min-height:150px;font:14px/1.5 ui-monospace,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px}
+.small{font-size:14px;color:var(--muted)}
+@media(max-width:600px){.slot{width:28px;height:34px;font-size:21px}.card{padding:16px}table{font-size:13px}th,td{padding:6px 4px}.txt{font-size:17px}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.ship{animation:bob 2.4s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.ship{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>English Treasure Hunt</h1>
+  <p>Caça ao tesouro de leitura em inglês, 9º ano, nível fácil. Leia os textos das ilhas, junte as letras e abra o baú.</p>
+  <div class="status" id="status"></div>
+</header>
+<div class="mapwrap">
+  <svg id="map" viewBox="0 0 1000 250" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa da rota"></svg>
+  <div class="slots" id="slots"></div>
+</div>
+<main id="app"></main>
+<script>
+{
+const Q=[
+{tag:"Informação específica",lab:"A postcard",txt:"Dear Grandma,\nWe are on Turtle Island! The beach is beautiful and the water is warm. Yesterday we found an old map in a bottle. Dad says it is just a game, but Tom and I want to follow it tomorrow. I miss you!\nLove, Ana",g:[["found","encontramos"],["bottle","garrafa"],["follow","seguir"],["miss","sentir saudade"]],q:"Where did Ana's family find the map?",o:["In a bottle.","Under a tree on the beach.","In Grandma's house.","In a shop on Turtle Island."],h:"Procure no texto a palavra 'found'. O que vem logo depois dela?",e:"O cartão diz: 'Yesterday we found an old map in a bottle'. 'Found' é o passado de 'find' (encontrar), e 'bottle' é garrafa. As outras alternativas não aparecem no texto."},
+{tag:"Regras e avisos",lab:"A sign on the beach",txt:"BEACH RULES\n• No dogs on the beach from 9 a.m. to 6 p.m.\n• Do not dig holes near the lighthouse.\n• Swim only when the flag is green.\n• Take your trash with you.",g:[["dig","cavar"],["holes","buracos"],["flag","bandeira"],["trash","lixo"]],q:"When can people swim?",o:["When the flag is green.","From 9 a.m. to 6 p.m.","Near the lighthouse.","When there are no dogs on the beach."],h:"Ache a regra que tem o verbo 'swim' (nadar).",e:"A regra diz 'Swim only when the flag is green': só nade quando a bandeira estiver verde. O horário de 9 a.m. a 6 p.m. é a regra dos cachorros, e o farol (lighthouse) aparece na regra sobre cavar buracos."},
+{tag:"A quem a palavra se refere",lab:"A short story",txt:"Sam and Lily walked to the old tree. It was very big and very tall. Under it, they saw a small wooden box. Lily opened it carefully. Inside, there was a key and a note.",g:[["wooden","de madeira"],["carefully","com cuidado"],["inside","dentro"],["note","bilhete"]],q:"In the sentence 'Lily opened it carefully', the word 'it' refers to:",o:["the wooden box.","the old tree.","the key.","the note."],h:"Pense: o que dá para abrir? E o que foi mencionado logo antes dessa frase?",e:"'It' retoma a coisa mencionada antes: 'a small wooden box'. Lily abriu a caixa, e dentro dela (inside) estavam a chave e o bilhete. Uma árvore não se abre, e a chave e o bilhete só aparecem depois."},
+{tag:"Vocabulário pelo contexto",lab:"A pirate story",txt:"The pirates climbed the hill slowly. At the top, they could see the whole island: the forest, the river and the small village. 'This is the perfect place to hide the treasure,' said Captain Rosa.",g:[["climbed","subiram"],["hill","morro"],["slowly","devagar"],["whole","inteira"]],q:"What does the word 'hide' mean in the text?",o:["esconder","encontrar","vender","mostrar"],h:"Piratas levam o tesouro para um lugar alto e isolado. O que eles querem fazer com ele?",e:"'Hide' significa esconder. A capitã procura um lugar perfeito para que ninguém ache o tesouro. 'Encontrar' seria 'find', 'vender' seria 'sell' e 'mostrar' seria 'show'."},
+{tag:"Ordem dos fatos",lab:"Leo's adventure",txt:"First, Leo read the map. Then he walked to the bridge. After that, he counted twenty steps to the left. Finally, he started to dig next to a big rock.",g:[["bridge","ponte"],["steps","passos"],["left","esquerda"],["dig","cavar"]],q:"What did Leo do after he walked to the bridge?",o:["He counted twenty steps to the left.","He read the map.","He started to dig.","He sat on a big rock."],h:"Observe as palavras de sequência: First, Then, After that, Finally.",e:"A ordem é: First (primeiro) leu o mapa; Then (depois) foi até a ponte; After that (em seguida) contou vinte passos para a esquerda; Finally (por fim) começou a cavar. Logo depois da ponte vem a contagem dos passos. Ele não se sentou na pedra: cavou ao lado dela (next to)."},
+{tag:"Verdadeiro ou falso",lab:"An email",txt:"Hi Mia,\nThe treasure hunt at school is on Friday at 2 p.m. Please bring a pencil, a notebook and a bottle of water. Don't bring your phone! The teams have four students. Our team is called 'The Sharks'.\nSee you!\nPedro",g:[["bring","trazer"],["pencil","lápis"],["team","equipe"],["sharks","tubarões"]],q:"Which sentence is TRUE according to the email?",o:["Students need to bring a pencil.","The treasure hunt is on Saturday.","Students can use their phones.","Each team has five students."],h:"Confira cada alternativa no e-mail: dia, material, celular e número de alunos.",e:"O e-mail pede 'a pencil, a notebook and a bottle of water'. A caça é na sexta (Friday), não no sábado (Saturday). 'Don't bring your phone' proíbe o celular. E as equipes têm quatro alunos (four students), não cinco."},
+{tag:"Buscar um dado",lab:"An advertisement",txt:"VISIT CAPTAIN JACK'S MUSEUM!\nSee real pirate ships, old maps and gold coins.\nOpen every day, 10 a.m. to 5 p.m.\nTickets: $8 (adults), $4 (children)\nFree entry on Mondays!",g:[["coins","moedas"],["tickets","ingressos"],["free","grátis"],["entry","entrada"]],q:"How much does a child pay to visit the museum on a Monday?",o:["Nothing. It is free.","$4","$8","$12"],h:"Leia até a última linha do anúncio.",e:"Nos outros dias, a criança paga $4. Mas a última linha diz 'Free entry on Mondays!': entrada grátis às segundas-feiras. Então, na segunda, a criança não paga nada."},
+{tag:"Sentimentos no texto",lab:"A diary",txt:"Saturday, May 10\nToday was the worst day of our trip. It rained all morning, we lost the map, and my shoes were wet all day. But in the evening, my brother found the map in his backpack! Now I can't wait for tomorrow.",g:[["worst","pior"],["lost","perdemos"],["wet","molhados"],["can't wait","mal posso esperar"]],q:"How does the writer feel at the end of the day?",o:["Excited about tomorrow.","Sad because the map is lost.","Angry with her brother.","Tired and ready to go home."],h:"O dia começou mal, mas a palavra 'But' muda a história. O que acontece depois dela?",e:"O dia foi ruim de manhã, mas à noite o irmão achou o mapa na mochila. 'I can't wait for tomorrow' quer dizer 'mal posso esperar por amanhã', que mostra animação (excited). O mapa já não está perdido no fim do dia."},
+{tag:"Ideia principal",lab:"An information text",txt:"Many people think pirates always buried their treasure. But historians say this was very rare. Most pirates spent their money quickly on food, clothes and parties. The idea of buried treasure became popular because of stories and films.",g:[["buried","enterraram"],["rare","raro"],["spent","gastaram"],["became","se tornou"]],q:"What is the main idea of the text?",o:["Pirates rarely buried treasure; the idea comes mostly from stories and films.","Pirates always buried their treasure on islands.","Historians love pirate films.","Pirates never had any money."],h:"A ideia principal resume o texto inteiro, e não só uma frase. Repare no 'But'.",e:"O texto começa com o que muitas pessoas pensam e depois corrige: 'But historians say this was very rare'. Os piratas gastavam o dinheiro rápido, e a ideia do tesouro enterrado veio de histórias e filmes. A alternativa 'always buried' é justamente a crença que o texto corrige."},
+{tag:"Instruções",lab:"How to use a compass",txt:"HOW TO USE A COMPASS\n1. Hold the compass flat in your hand.\n2. Wait until the needle stops moving.\n3. The red end of the needle points north.\n4. Don't use it near metal objects. They can change the direction of the needle.",g:[["compass","bússola"],["flat","na horizontal"],["needle","agulha"],["points","aponta"]],q:"Why shouldn't you use a compass near metal objects?",o:["Because metal can change the direction of the needle.","Because the compass can break.","Because the needle becomes red.","Because metal objects are heavy."],h:"Leia a instrução número 4 até o fim.",e:"A instrução 4 explica: 'They can change the direction of the needle'. 'They' retoma 'metal objects': os objetos de metal podem mudar a direção da agulha. O texto não fala em quebrar a bússola nem em peso."},
+{tag:"Comparações",lab:"Notes on the map",txt:"There are three islands on the map. Palm Island is bigger than Rock Island, but Rock Island is taller. Shell Island is the smallest of the three, and it is the closest to the beach.",g:[["bigger than","maior que"],["taller","mais alta"],["the smallest","a menor"],["the closest","a mais próxima"]],q:"Which island is the smallest?",o:["Shell Island.","Rock Island.","Palm Island.","Palm Island and Rock Island."],h:"Procure 'the' + palavra terminada em '-est'. Isso indica 'a mais...' ou 'a menos...'.",e:"'Shell Island is the smallest of the three': Shell Island é a menor das três. 'Small' vira 'smaller' (menor que) e 'the smallest' (a menor). Rock Island é mais alta (taller), mas isso não diz nada sobre ser a menor."},
+{tag:"Diálogo",lab:"A conversation",txt:"Teacher: Did you find the treasure, Julia?\nJulia: No, we didn't. We found the old well, but the treasure wasn't there.\nTeacher: Oh no! What did you do then?\nJulia: We went back to the start and read the clues again.",g:[["well","poço"],["wasn't","não estava"],["went back","voltamos"],["clues","pistas"]],q:"What did Julia's team do after they found the well?",o:["They went back to the start and read the clues again.","They found the treasure in the well.","They stopped playing the game.","They asked the teacher for help."],h:"Veja a última fala de Julia, depois da pergunta 'What did you do then?'.",e:"A professora pergunta o que fizeram depois ('then'), e Julia responde: 'We went back to the start and read the clues again', ou seja, voltaram ao início e leram as pistas de novo. O tesouro não estava no poço ('wasn't there')."},
+{tag:"Falso cognato",lab:"A short story",txt:"The old captain pretended to be asleep. When the boys left the room, he opened one eye, smiled, and took the map out of his pocket.",g:[["asleep","dormindo"],["left","saíram"],["smiled","sorriu"],["pocket","bolso"]],q:"What does 'pretended' mean in the text?",o:["fingiu","pretendia (tinha a intenção)","preferiu","precisou"],h:"Cuidado: 'pretend' parece 'pretender', mas não é. Ele estava dormindo de verdade?",e:"'Pretend' é um falso cognato: significa fingir. O capitão fingiu dormir, e quando os meninos saíram ele abriu um olho e pegou o mapa. Para 'pretender', no sentido de ter a intenção, o inglês usa 'intend'."},
+{tag:"Tabela de horários",lab:"A boat schedule",txt:"BOAT TRIPS TO SKULL ISLAND\nMorning boat: 8:30, leaves from Pier 1\nAfternoon boat: 1:45, leaves from Pier 3\nLast boat back: 5:15\nNo boats on rainy days.",g:[["leaves","sai, parte"],["pier","cais"],["back","de volta"],["rainy","chuvoso"]],q:"Ben wants to take the afternoon boat. Where and when should he be there?",o:["At Pier 3, before 1:45.","At Pier 1, before 8:30.","At Pier 3, at 5:15.","At Pier 1, at 1:45."],h:"'Afternoon' é tarde. Ache a linha do barco da tarde.",e:"A linha 'Afternoon boat: 1:45, leaves from Pier 3' diz que o barco da tarde sai às 13h45 do Cais 3. O Cais 1 é do barco da manhã (morning), e 5:15 é o horário do último barco de volta (last boat back)."},
+{tag:"Entender o motivo",lab:"A text message",txt:"Hey! I'm at the lighthouse. The next clue is NOT here. I think we need to go to the old church. Meet me there in 10 minutes? Bring the flashlight, it's getting dark!",g:[["clue","pista"],["meet","encontrar"],["flashlight","lanterna"],["getting dark","escurecendo"]],q:"Why does the writer ask for the flashlight?",o:["Because it's getting dark.","Because the lighthouse is closed.","Because the church is very far.","Because the next clue is inside the flashlight."],h:"Leia o final da última frase, depois da vírgula.",e:"A mensagem termina com 'Bring the flashlight, it's getting dark!': traga a lanterna, está escurecendo. O texto não diz que o farol está fechado nem que a igreja é longe; diz só que a pista não está no farol."},
+{tag:"Melhor título",lab:"A news text",txt:"Every summer, the town of Port Bell has a big treasure hunt. Families get a map and look for twenty hidden boxes. Each box has a small prize, like a book or a toy. The money from the maps goes to the town library.",g:[["summer","verão"],["hidden","escondidas"],["prize","prêmio"],["library","biblioteca"]],q:"What is the best title for this text?",o:["A Summer Treasure Hunt Helps the Library","How to Draw a Map","The History of Port Bell","Twenty Books for Children"],h:"O melhor título resume o texto todo: o evento e para onde vai o dinheiro.",e:"O texto fala de uma caça ao tesouro que acontece todo verão e diz que o dinheiro dos mapas vai para a biblioteca da cidade. O primeiro título junta essas duas ideias. Os outros falam de assuntos que o texto não trata (desenhar mapas, história da cidade) ou de um detalhe solto (livros)."}
+];
+const WORDS=[
+{w:"TREASURE",r:"Gold, coins and jewels. Everybody wants to find me!",p:"Ouro, moedas e joias. Todo mundo quer me encontrar!"},
+{w:"DISCOVER",r:"You do this when you find something new for the first time.",p:"Você faz isso quando encontra algo novo pela primeira vez."},
+{w:"SAILBOAT",r:"I travel on the water, and the wind pushes me.",p:"Eu viajo na água, e o vento me empurra."},
+{w:"MOUNTAIN",r:"I am very, very tall, and sometimes I have snow on top.",p:"Sou muito, muito alta, e às vezes tenho neve no topo."},
+{w:"EXPLORER",r:"I travel to new places to learn about the world.",p:"Viajo para lugares novos para conhecer o mundo."},
+{w:"NOTEBOOK",r:"You write your notes and your clues in me.",p:"Você escreve suas anotações e suas pistas em mim."}
+];
+const N=8,TORCH=6,PTS=[100,70,40,20],HINT=20,FB=[200,150,100,50],KEY="english-treasure-9ano-v1",LET="ABCD";
+let S=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rnd=()=>{try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}catch(e){return Math.random()}};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().replace(/[^A-Z]/g,"");
+const code=()=>{const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(rnd()*c.length)];return "ENG-"+s};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const load=()=>{try{const v=JSON.parse(localStorage.getItem(KEY)||"null");return v&&v.qs?v:null}catch(e){return null}};
+const fmtT=ms=>{const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60;return m+" min "+String(s).padStart(2,"0")+" s"};
+const rank=p=>p>=850?"Treasure Master (mestre do tesouro)":p>=650?"Captain (capitão)":p>=400?"Sailor (marinheiro)":"Deckhand (ajudante de bordo)";
+
+function newGame(name){
+  const qs=shuffle([...Q.keys()]).slice(0,N);
+  const wd=WORDS[Math.floor(rnd()*WORDS.length)];
+  let letters;do{letters=shuffle(wd.w.split(""))}while(letters.join("")===wd.w);
+  S={name,code:code(),qs,ord:qs.map(()=>shuffle([0,1,2,3])),word:wd.w,riddle:wd.r,pt:wd.p,letters,stage:0,torches:TORCH,score:0,cur:{tries:0,hint:false,wrong:[],solved:false},log:[],phase:"play",t0:Date.now(),t1:0,ft:0,fwrong:[],opened:false};
+  save();render();window.scrollTo(0,0);
+}
+function pick(i){
+  if(!S||S.phase!=="play")return;
+  const c=S.cur;if(c.solved||c.wrong.includes(i))return;
+  if(i===0){
+    c.solved=true;const pts=Math.max(0,PTS[Math.min(c.tries,3)]-(c.hint?HINT:0));
+    S.score+=pts;S.log.push({q:S.qs[S.stage],tries:c.tries,hint:c.hint,pts});
+  }else{
+    c.wrong.push(i);c.tries++;S.torches--;
+    if(S.torches<=0){S.phase="wreck";S.t1=Date.now()}
+  }
+  save();render();
+}
+function next(){
+  if(!S||S.phase!=="play"||!S.cur.solved)return;
+  S.stage++;S.cur={tries:0,hint:false,wrong:[],solved:false};
+  if(S.stage>=N)S.phase="final";
+  save();render();window.scrollTo({top:0,behavior:"smooth"});
+}
+function guess(v){
+  if(!S||S.phase!=="final")return;
+  const g=norm(v);if(!g)return;
+  if(g===S.word){S.score+=FB[S.ft];S.opened=true;S.phase="end";S.t1=Date.now()}
+  else{S.fwrong.push(g);S.ft++;if(S.ft>=FB.length){S.phase="end";S.t1=Date.now()}}
+  save();render();
+}
+function torchSvg(on){return `<svg viewBox="0 0 16 22" aria-hidden="true"><rect x="6" y="9" width="4" height="13" rx="1" fill="${on?"#a86b2c":"#6d8fa3"}"/><path d="M8 1c3 4 5 6 3 9H5C3 7 6 5 8 1z" fill="${on?"#ffb238":"none"}" stroke="${on?"#e8573f":"#9cc2d6"}" stroke-width="1.2"/></svg>`}
+function status(){
+  if(!S){$("#status").innerHTML=`<span>Cada partida sorteia <b>${N}</b> de <b>${Q.length}</b> textos e uma palavra diferente para o baú.</span>`;return}
+  $("#status").innerHTML=`<span>Jogador: <b>${esc(S.name)}</b></span><span>Ilha <b>${S.phase==="play"?S.stage+1:N}</b> de ${N}</span><span>Tochas <span class="torches" aria-label="${S.torches} tochas">${Array.from({length:TORCH},(_,i)=>torchSvg(i<S.torches)).join("")}</span></span><span>Pontos <b>${S.score}</b></span><span>Código <b>${S.code}</b></span>`;
+}
+function drawMap(){
+  const pts=[];for(let i=0;i<=N;i++){pts.push([70+i*107.5,125+Math.sin(i*1.25+.4)*58])}
+  let d=`M${pts[0][0]},${pts[0][1]}`;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i];d+=` C${a[0]+50},${a[1]} ${b[0]-50},${b[1]} ${b[0]},${b[1]}`}
+  const ph=S?S.phase:"start";
+  const done=ph==="play"?S.stage:(ph==="final"||ph==="end")?N:ph==="wreck"?S.stage:0;
+  const curI=ph==="play"||ph==="wreck"?S.stage:N;
+  let waves="";let sd=11;for(let k=0;k<26;k++){sd=sd*16807%2147483647;const x=sd%1000;sd=sd*16807%2147483647;const y=10+sd%230;waves+=`<path d="M${x},${y} q8,-6 16,0 q8,6 16,0" fill="none" stroke="#ffffff" stroke-opacity=".22" stroke-width="2"/>`}
+  let isl=`<g transform="translate(940,40)"><circle r="26" fill="#ffcf3f"/><circle r="34" fill="none" stroke="#ffcf3f" stroke-opacity=".4" stroke-width="4"/></g>`;
+  pts.forEach((p,i)=>{
+    const [x,y]=p;
+    if(i===N){
+      const open=S&&S.opened;
+      isl+=`<g transform="translate(${x},${y})"><ellipse cx="0" cy="18" rx="44" ry="14" fill="#d9a21a"/><ellipse cx="0" cy="13" rx="42" ry="13" fill="#ffe08a"/><g transform="translate(-18,-14)"><rect x="0" y="12" width="36" height="20" rx="3" fill="#8a4f22"/><rect x="0" y="12" width="36" height="6" fill="#6e3d17"/>${open?`<path d="M0,12 L4,-4 L40,-4 L36,12z" fill="#a8622b"/><circle cx="18" cy="6" r="6" fill="#ffd34d"/>`:`<path d="M0,12 Q18,-2 36,12z" fill="#a8622b"/>`}<rect x="15" y="16" width="6" height="8" rx="1" fill="#ffcf3f"/></g></g>`;
+      return}
+    const isDone=i<done,isCur=ph==="play"&&i===curI;
+    const op=ph==="start"||isDone||isCur?1:.55;
+    isl+=`<g transform="translate(${x},${y})" opacity="${op}"><ellipse cx="0" cy="16" rx="36" ry="12" fill="#d9a21a"/><ellipse cx="0" cy="11" rx="34" ry="11" fill="#ffe08a"/><path d="M-6,8 Q-4,-10 -2,-22" stroke="#8a5a2b" stroke-width="4" fill="none"/><path d="M-2,-22 q-14,-2 -20,8 M-2,-22 q14,-4 20,6 M-2,-22 q-4,-12 -14,-14 M-2,-22 q8,-12 18,-10" stroke="#1f9a5a" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="22" cy="-20" r="14" fill="${isDone?"#178a52":"#0d2a3a"}" stroke="#fff" stroke-width="2"/><text x="22" y="-15" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="800" font-size="15" fill="#fff">${isDone?"✓":i+1}</text></g>`;
+  });
+  let ship="";
+  if(S){
+    const p=pts[Math.min(curI,N)];const sx=p[0]-48,sy=p[1]-18;
+    ship=ph==="wreck"?`<g transform="translate(${sx},${sy+10}) rotate(35)"><path d="M-16,0 L16,0 L10,10 L-10,10z" fill="#5a3418"/><line x1="0" y1="0" x2="0" y2="-20" stroke="#5a3418" stroke-width="2"/></g>`:
+    `<g class="ship"><g transform="translate(${sx},${sy})"><path d="M-18,0 L18,0 L12,11 L-12,11z" fill="#c0392b"/><path d="M-18,0 L18,0 L16,3 L-16,3z" fill="#e8573f"/><line x1="0" y1="0" x2="0" y2="-28" stroke="#3b2210" stroke-width="2"/><path d="M1,-27 L16,-6 L1,-6z" fill="#ffffff"/><path d="M-1,-24 L-13,-6 L-1,-6z" fill="#eaf6fd"/><path d="M0,-28 l9,3 l-9,3z" fill="#ffcf3f"/></g></g>`;
+  }
+  $("#map").innerHTML=`${waves}<path d="${d}" fill="none" stroke="#ffcf3f" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>${isl}${ship}`;
+  const got=ph==="play"?S.stage+(S.cur.solved?1:0):ph==="wreck"?S.stage:ph==="start"?0:N;
+  $("#slots").innerHTML=`<span>Letras do baú:</span>`+Array.from({length:N},(_,i)=>`<span class="slot${i<got?" on":""}">${i<got?S.letters[i]:""}</span>`).join("");
+}
+function vStart(){
+  const prev=load();
+  const resume=prev&&(prev.phase==="play"||prev.phase==="final")?`<div class="row"><button class="btn ghost" id="resume">Continuar o jogo de ${esc(prev.name)} (${prev.code})</button></div>`:"";
+  return `<div class="start"><section class="card"><h2>Como jogar</h2><ol><li>Você joga sozinho. Em cada ilha há um texto curto em inglês e uma pergunta com quatro alternativas.</li><li>Embaixo de cada texto há um mini glossário com palavras que podem ajudar.</li><li>Errou, perde uma tocha. São ${TORCH} tochas para a viagem toda.</li><li>Acerto de primeira vale 100 pontos; na segunda tentativa, 70; na terceira, 40; depois, 20. A pista custa ${HINT} pontos.</li><li>Cada acerto dá uma letra. No fim, você organiza as letras e forma uma palavra em inglês para abrir o baú. São 4 tentativas, e o jogo vai dando dicas.</li><li>Cada jogo novo sorteia outros textos e outra palavra. O jogo do colega é diferente do seu.</li></ol></section>
+  <section class="card"><h2>What's your name?</h2><form id="fstart"><label for="nome">Seu nome</label><input type="text" id="nome" maxlength="40" autocomplete="name" required placeholder="Nome e sobrenome"><div class="row"><button class="btn gold" type="submit">Start the hunt!</button></div></form>${resume}<p class="small">Todos os textos foram escritos para este jogo.</p></section></div>`;
+}
+function vPlay(){
+  const d=Q[S.qs[S.stage]],c=S.cur,ord=S.ord[S.stage];
+  const opts=ord.map((oi,k)=>{const bad=c.wrong.includes(oi),good=c.solved&&oi===0;return `<button class="opt${bad?" bad":""}${good?" good":""}" data-o="${oi}" ${c.solved||bad?"disabled":""}><span class="l">${LET[k]}</span><span lang="${/^(esconder|encontrar|vender|mostrar|fingiu|pretendia|preferiu|precisou)/.test(d.o[oi])?"pt-BR":"en"}">${esc(d.o[oi])}</span></button>`}).join("");
+  const last=S.log[S.log.length-1];
+  const msg=!c.solved&&c.wrong.length?`<p class="msg bad">Not this one! Você perdeu uma tocha. Leia de novo e tente outra.</p>`:"";
+  const hint=c.hint?`<div class="hint"><b>Pista:</b> ${esc(d.h)}</div>`:"";
+  const exp=c.solved?`<div class="exp"><h3>Great job! Letra: ${S.letters[S.stage]}</h3><p style="margin:0 0 6px"><b>+${last.pts} pontos.</b> ${esc(d.e)}</p><div class="row"><button class="btn" id="next">${S.stage+1<N?"Next island ("+(S.stage+2)+")":"Go to the treasure chest"}</button></div></div>`:"";
+  return `<div class="grid"><section class="card doc"><p class="lab">Ilha ${S.stage+1}: ${esc(d.lab)}</p><div class="txt" lang="en">${esc(d.txt)}</div><div class="gl" aria-label="Glossário">${d.g.map(x=>`<span><b lang="en">${esc(x[0])}</b> = ${esc(x[1])}</span>`).join("")}</div></section>
+  <section class="card"><span class="tag">${esc(d.tag)}</span><p class="q" lang="en">${esc(d.q)}</p><div class="opts">${opts}</div>${msg}${hint}${!c.solved&&!c.hint?`<div class="row"><button class="btn ghost" id="hint">Pedir pista (−${HINT} pontos)</button></div>`:""}${exp}</section></div>`;
+}
+function vFinal(){
+  const w=S.word;let help="";
+  if(S.ft>=1)help=`A palavra começa com <b>${w[0]}</b>`;
+  if(S.ft>=2)help+=` e termina com <b>${w[w.length-1]}</b>`;
+  if(S.ft>=3)help+=`. A segunda letra é <b>${w[1]}</b>`;
+  return `<div class="grid final"><section class="card doc"><h2>The chest is locked!</h2><p>Suas letras, fora de ordem:</p><p class="big">${S.letters.join(" ")}</p><p class="riddle" lang="en">${esc(S.riddle)}</p><p class="pt">${esc(S.pt)}</p>${help?`<div class="hint">${help}.</div>`:""}</section>
+  <section class="card"><form id="ffinal"><label for="pal">Qual palavra em inglês abre o baú?</label><input type="text" id="pal" maxlength="20" autocomplete="off" required><div class="row"><button class="btn gold" type="submit">Open the chest</button></div></form><p class="small">Tentativa ${S.ft+1} de ${FB.length}. Bônus desta tentativa: ${FB[S.ft]} pontos.</p>${S.fwrong.length?`<p class="msg bad">Não abriu: ${S.fwrong.map(esc).join(", ")}.</p>`:""}</section></div>`;
+}
+function summary(){return {first:S.log.filter(l=>l.tries===0).length,hints:S.log.filter(l=>l.hint).length,time:fmtT((S.t1||Date.now())-S.t0)}}
+function report(){
+  const m=summary();
+  return [`English Treasure Hunt (9º ano, nível fácil)`,`Jogador: ${S.name}`,`Código: ${S.code}`,`Resultado: ${S.phase==="wreck"?"naufrágio na ilha "+(S.stage+1):S.opened?"baú aberto ("+S.word+")":"baú trancado"}`,`Pontos: ${S.score} de 1000${S.phase==="wreck"?"":" ("+rank(S.score)+")"}`,`Acertos de primeira: ${m.first} de ${S.log.length}`,`Pistas usadas: ${m.hints}`,`Tochas restantes: ${S.torches}`,`Tempo: ${m.time}`,``,...S.log.map((l,i)=>`Ilha ${i+1} | ${Q[l.q].tag} | ${l.tries===0?"1ª tentativa":(l.tries+1)+"ª tentativa"}${l.hint?" + pista":""} | ${l.pts} pts`)].join("\n");
+}
+function vEnd(){
+  const m=summary(),wreck=S.phase==="wreck";
+  const head=wreck?`<h2>Oh no! Shipwreck on island ${S.stage+1}</h2><p>As tochas acabaram. Você chegou com ${S.log.length} letras e ${S.score} pontos. Um jogo novo traz outros textos.</p>`:
+  S.opened?`<h2>You did it, ${esc(S.name.split(" ")[0])}!</h2><p>A palavra era <b lang="en">${S.word}</b>. ${esc(S.pt)}</p>`:`<h2>The chest stayed locked</h2><p>A palavra era <b lang="en">${S.word}</b>. ${esc(S.pt)}</p>`;
+  const rows=S.log.map((l,i)=>`<tr><td>${i+1}</td><td>${esc(Q[l.q].tag)}</td><td>${l.tries===0?"1ª":(l.tries+1)+"ª"}${l.hint?" + pista":""}</td><td class="n">${l.pts}</td></tr>`).join("");
+  return `<div class="grid end"><section class="card doc">${head}<div class="figs"><div class="fig1"><b>${S.score}</b><span>pontos de 1000</span></div><div class="fig1"><b>${wreck?"—":rank(S.score)}</b><span>patente</span></div><div class="fig1"><b>${m.first} de ${S.log.length}</b><span>acertos de primeira</span></div><div class="fig1"><b>${m.time}</b><span>tempo</span></div></div>
+  <div class="scroll"><table><thead><tr><th>Ilha</th><th>Habilidade</th><th>Acerto</th><th class="n">Pts</th></tr></thead><tbody>${rows||`<tr><td colspan="4">Nenhuma ilha concluída.</td></tr>`}</tbody></table></div></section>
+  <section class="card"><h3 style="font-size:28px;margin-bottom:8px">Diário para entregar</h3><p class="small">Copie e envie ao professor. O código identifica o seu jogo.</p><textarea id="rep" readonly>${esc(report())}</textarea><div class="row"><button class="btn" id="copy">Copiar diário</button><span id="copied" class="small" aria-live="polite"></span></div><div class="row"><button class="btn gold" id="again">Play again (jogo novo)</button></div></section></div>`;
+}
+function render(){
+  status();drawMap();
+  const ph=S?S.phase:"start";
+  $("#app").innerHTML=ph==="start"?vStart():ph==="play"?vPlay():ph==="final"?vFinal():vEnd();
+}
+document.addEventListener("click",e=>{
+  const o=e.target.closest(".opt");if(o&&!o.disabled){pick(+o.dataset.o);return}
+  const id=e.target.closest("button")?.id;
+  if(id==="hint"){S.cur.hint=true;save();render()}
+  else if(id==="next")next();
+  else if(id==="resume"){S=load();render()}
+  else if(id==="again"){const n=S?S.name:"";S=null;try{localStorage.removeItem(KEY)}catch(_){}render();const f=$("#nome");if(f){f.value=n;f.focus()}}
+  else if(id==="copy"){const t=$("#rep");const fb=()=>{t.select();$("#copied").textContent="Selecionado: use Ctrl+C."};try{navigator.clipboard.writeText(t.value).then(()=>{$("#copied").textContent="Copiado."},fb)}catch(_){fb()}}
+});
+document.addEventListener("submit",e=>{
+  e.preventDefault();
+  if(e.target.id==="fstart"){const n=$("#nome").value.trim();if(n)newGame(n)}
+  if(e.target.id==="ffinal")guess($("#pal").value);
+});
+const start=d=>{if(d&&d.qs)S=d;render()};
+window.claude?.hot?.snapshot?.(()=>S);
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??null);
+}
+</script>
+</body>
+</html>
